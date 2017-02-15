@@ -7,7 +7,7 @@ from sklearn.cross_validation import KFold
 def make_counters(X, y, folding=True, n_folds=10):
     n_samples = X.shape[0]
     n_features = X.shape[1]
-    new_X = np.zeros((n_samples, 3 * n_features), dtype=float)
+    new_X = np.zeros((n_samples, n_features), dtype=float)
     if folding:
         kf = KFold(n=n_samples, n_folds=n_folds, shuffle=True)
     else:
@@ -18,25 +18,27 @@ def make_counters(X, y, folding=True, n_folds=10):
             uniq_values, counts = np.unique(X[train_ind, i], return_counts=True)
             for j in range(0, uniq_values.shape[0]):
                 ind = test_ind[np.where(X[test_ind, i] == uniq_values[j])[0]]
-                new_X[ind, i] = counts[j] / train_ind.shape[0]  # учитываем размер train
+                # new_X[ind, i] = counts[j] / train_ind.shape[0]  # учитываем размер train
                 successes = np.sum(y[train_ind[np.where(X[train_ind, i] == uniq_values[j])[0]]])
-                new_X[ind, n_features + i] = successes / train_ind.shape[0]
-                new_X[ind, 2 * n_features + i] = (successes + 1) / (counts[j] + 2)
+                # new_X[ind, n_features + i] = successes / train_ind.shape[0]
+                # new_X[ind, 2 * n_features + i] = (successes + 1) / (counts[j] + 2)
+                new_X[ind, i] = (successes + 1) / (counts[j] + 2)
     return new_X
 
 
 def make_counters_test(X_test, X_train, y_train):
     n_samples = X_test.shape[0]
     n_features = X_test.shape[1]
-    new_X = np.zeros((n_samples, 3 * n_features), dtype=float)
+    new_X = np.zeros((n_samples, n_features), dtype=float)
     for i in range(0, n_features):
         uniq_values, counts = np.unique(X_train[:, i], return_counts=True)
         for j in range(0, uniq_values.shape[0]):
             ind = np.where(X_test[:, i] == uniq_values[j])[0]
-            new_X[ind, i] = counts[j] / X_train.shape[0]
+            # new_X[ind, i] = counts[j] / X_train.shape[0]
             successes = np.sum(y_train[np.where(X_train[:, i] == uniq_values[j])[0]])
-            new_X[ind, n_features + i] = successes / X_train.shape[0]
-            new_X[ind, 2 * n_features + i] = (successes + 1) / (counts[j] + 2)
+            # new_X[ind, n_features + i] = successes / X_train.shape[0]
+            # new_X[ind, 2 * n_features + i] = (successes + 1) / (counts[j] + 2)
+            new_X[ind, i] = (successes + 1) / (counts[j] + 2)
     return new_X
 
 
