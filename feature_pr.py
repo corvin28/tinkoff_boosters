@@ -1,15 +1,16 @@
 import numpy as np
 import pandas as pd
-from sklearn.cross_validation import KFold
+from sklearn.cross_validation import StratifiedKFold
 
 
 #counters
-def make_counters(X, y, folding=True, n_folds=10):
+def make_counters(X, y, folding=True, n_folds=10, alpha=10):
     n_samples = X.shape[0]
     n_features = X.shape[1]
+    global_mean = y.mean()
     new_X = np.zeros((n_samples, n_features), dtype=float)
     if folding:
-        kf = KFold(n=n_samples, n_folds=n_folds, shuffle=True)
+        kf = StratifiedKFold(y, n_folds=n_folds, shuffle=True)
     else:
         kf = [(np.arange(n_samples), np.arange(n_samples))]
     for train_ind, test_ind in kf:
@@ -22,13 +23,14 @@ def make_counters(X, y, folding=True, n_folds=10):
                 successes = np.sum(y[train_ind[np.where(X[train_ind, i] == uniq_values[j])[0]]])
                 # new_X[ind, n_features + i] = successes / train_ind.shape[0]
                 # new_X[ind, 2 * n_features + i] = (successes + 1) / (counts[j] + 2)
-                new_X[ind, i] = (successes + 1) / (counts[j] + 2)
+                new_X[ind, i] = (successes + global_mean * alpha) / (counts[j] + alpha)
     return new_X
 
 
-def make_counters_test(X_test, X_train, y_train):
+def make_counters_test(X_test, X_train, y_train, alpha=10):
     n_samples = X_test.shape[0]
     n_features = X_test.shape[1]
+    global_mean = y_train.mean()
     new_X = np.zeros((n_samples, n_features), dtype=float)
     for i in range(0, n_features):
         uniq_values, counts = np.unique(X_train[:, i], return_counts=True)
@@ -38,7 +40,7 @@ def make_counters_test(X_test, X_train, y_train):
             successes = np.sum(y_train[np.where(X_train[:, i] == uniq_values[j])[0]])
             # new_X[ind, n_features + i] = successes / X_train.shape[0]
             # new_X[ind, 2 * n_features + i] = (successes + 1) / (counts[j] + 2)
-            new_X[ind, i] = (successes + 1) / (counts[j] + 2)
+            new_X[ind, i] = (successes + global_mean * alpha) / (counts[j] + alpha)
     return new_X
 
 
